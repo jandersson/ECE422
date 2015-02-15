@@ -8,14 +8,14 @@ import json
 # Global State
 host = "127.0.0.1"
 port = 5555
-request = {'request': '/helloWorld.html'}
+request = {'request': 'GET /helloWorld.html'}
 
 
 def client_connector():
     print('Client Started')
     sock = socket(AF_INET, SOCK_STREAM)
     sock.connect((host, port))
-    reply = send_data(sock)
+    reply = send_data(sock, request)
     print(reply['status_code'] + reply['status_message'])
     sock.close()
 
