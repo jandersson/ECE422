@@ -40,26 +40,24 @@ while serving:
         filename = raw_data[1]
         f = open(filename[1:])
         with open(filename[1:], 'rb') as f:
-            outputdata = f.read()
+            output_data = f.read()
 
         # Send the HTTP response header line to the connection socket
         # We are using "b" here because, we send bytes not strings.
         connection.send(b"HTTP/1.1 200 OK\r\n\r\n")
 
         # Send the content of the requested file to the connection socket
-        connection.sendall(outputdata)
+        connection.sendall(output_data)
 
         # Close the client connection socket
         connection.close()
 
     except IOError:
-        # Send HTTP response message for file not found to client socket. You have studied error messages in chapter 2
-        # Fill in start
+        # Send HTTP response message for file not found to client socket.
         connection.send(b"HTTP/1.1 404 Not Found\r\n\r\n")
         with open("404.html", 'rb') as f:
-            outputdata = f.read()
-        connection.sendall(outputdata)
-        #Fill in end
+            output_data = f.read()
+        connection.sendall(output_data)
 
         # Close the client connection socket
         connection.close()
