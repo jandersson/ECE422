@@ -13,11 +13,6 @@ server_socket.bind(socket_tuple)
 server_socket.listen(1)
 print('Web Server Running')
 
-def parse(request):
-    # Parses the request for requested page
-    pass
-
-
 while serving:
     # Set up a new connection from the client using accept
     connection, conn_address = server_socket.accept()
