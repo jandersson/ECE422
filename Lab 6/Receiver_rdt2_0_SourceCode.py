@@ -18,12 +18,12 @@ rSocket.bind((localIP, localPORT))
 buffer=b''
 
 
-rdtVersion=2.0 #[1.0,2.0,2.1,2.2,3.0] this for channel to know to introduce bit errors or drop packet in case of rdt3.0
-corruptEnabled=True	#enabling bit error
-corruptRatio=0.3	#Bit error ratio of 3 out of 10 packets
-dropEnabled=True
-dropRatio=0.3
-seqNum=False 		#Start from 0
+rdtVersion = 2.0  # [1.0,2.0,2.1,2.2,3.0] this for channel to know to introduce bit errors or drop packet in case of rdt3.0
+corruptEnabled = True	#enabling bit error
+corruptRatio = 0.3	#Bit error ratio of 3 out of 10 packets
+dropEnabled = True
+dropRatio = 0.3
+seqNum = False 		#Start from 0
 
 #Function to extract content of packet i.e data only
 def extract(packet):
@@ -40,10 +40,12 @@ def deliver_data(data):
 def make_checksum(data):    
     return chr(crc32(data)%127).encode()
 
+
 #Function to check if received packet is corrupt
 def corrupt(packet):
     pLen=len(packet)
-    if make_checksum(extract(packet))==packet[(pLen-1):pLen]:	#make checksum using data and compare it with received check sum
+    if make_checksum(extract(packet))==packet[(pLen-1):pLen]:
+    # make checksum using data and compare it with received check sum
         return False
     else:
         return True
