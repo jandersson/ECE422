@@ -3,7 +3,7 @@ from socket import *
 from math import *
 from zlib import *
 from random import *
-#channel is a underlaying channel which introduces bit errors
+# channel is a underlaying channel which introduces bit errors
 from channel import *
 
 localIP = '127.0.0.1'    # Local Host
@@ -80,7 +80,7 @@ def rdt_rcv(packet):
 #main program
 while True:
     ## Assume the packet are affected by the underlying channel
-    rcvpkt=channel('r',rdtVersion,corruptEnabled,corruptRatio,dropEnabled,dropRatio, rSocket.recv(1024))
+    rcvpkt = channel('r', rdtVersion, corruptEnabled,corruptRatio,dropEnabled,dropRatio, rSocket.recv(1024))
     print('Received: ',rcvpkt)
     if rcvpkt:
         if (rdt_rcv(rcvpkt) and corrupt(rcvpkt)): #once packet is received check if packet is corrupt

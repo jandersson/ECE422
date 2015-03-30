@@ -39,15 +39,15 @@ seqNum = False  # Start from 0
 def extract(packet):
     # calculate length of packet
     packet_length = len(packet)
-    #return the data from packet excluding check sum (last bit of packet content)
-    return packet[:packet_length-1]
+    # return the data from packet excluding check sum (last bit of packet content)
+    return packet[0:(packet_length-1)]
 # fill in end
 
 
 # Function to deliver data to upper layer
 def deliver_data(data):
     global buffer
-    buffer = buffer+data
+    buffer = buffer+data[1:]
     return
 
 
@@ -66,10 +66,10 @@ def corrupt(packet):
 # fill in starts
 # define function notcorrupt() which takes argument packet
 def notcorrupt(packet):
-    #calculate the length of packet
-    packet_length = len(packet)
-    #if calculated checksum using data==checksum received
-    if make_checksum(packet):
+    # calculate the length of packet
+    pLen = len(packet)
+    # if calculated checksum using data==checksum received
+    if make_checksum(extract(packet)) == packet[(pLen-1):pLen]:
         return True
     # else
     else:
@@ -94,7 +94,7 @@ def udt_send(packet):
     # create a IPV4 UDP socket
     sSocket = socket(AF_INET, SOCK_DGRAM)
     # connect to sender socket using it's address and port number
-    sSocket.connect((remoteIP,remotePort))
+    sSocket.connect((remoteIP, remotePort))
     # send packet
     sSocket.send(packet)
     # fill in end
@@ -114,7 +114,7 @@ def rdt_rcv(packet):
 def has_seq0(packet):
     # fill in start
     # check if packet has Seq number 0.(Packet='SeqNUM+data+checksum', seqNUM is 1st byte)
-    if packet[0] == 0:
+    if packet[0:1] == b'0':
         return True
     # if present return true
     # fill in end
@@ -126,7 +126,7 @@ def has_seq0(packet):
 def has_seq1(packet):
     # fill in start
     # check if packet has Seq number 1.(Packet='SeqNUM+data+checksum', seqNUM is 1st byte)
-    if packet[0] == 1:
+    if packet[0:1] == b'1':
         return True
     # if present return true
     # fill in end
@@ -146,31 +146,33 @@ while True:
             if rdt_rcv(rcvpkt) and (corrupt(rcvpkt) or has_seq0(rcvpkt)):
                 checksum = make_checksum(str(int(not seqNum)).encode()+b'ACK')
                 # Creating a checksum using seqNum and 'ACK'
-        # fill in start
-            sndpkt = make_pkt(seqNum, b'ACK', checksum)
-        # make a packet by calling make pkt with arguments seqNum, 'ACK', checksum. (Note that seqNum type is boolean
-        # and to send string in python 3 we send with following format: b'string', where b signifies bytes and
-        # 'string' signifies the string you intend to send)
-        # fill in end
-            udt_send(sndpkt)
-        if rdt_rcv(rcvpkt) and notcorrupt(rcvpkt) and has_seq1(rcvpkt):
-            data = extract(rcvpkt)
-            deliver_data(data)
-            checksum = make_checksum(str(int(seqNum)).encode()+b'ACK')
-            # fill in start
-            sndpkt = make_pkt(seqNum, b'ACK', checksum)
-            # make a packet by calling make pkt with arguments seqNum, 'ACK', checksum.
-            # (Note that seqNum type is boolean and to send string in python 3 we send with following format:
-            # b'string', where b signifies bytes and 'string' signifies the string you intend to send)
-            # fill in end
-            udt_send(sndpkt)
-            seqNum = not seqNum
+                # fill in start
+                sndpkt = make_pkt(not seqNum, b'ACK', checksum)
+                # make a packet by calling make pkt with arguments seqNum, 'ACK', checksum.
+                # (Note that seqNum type is boolean
+                # and to send string in python 3 we send with following format: b'string',
+                #  where b signifies bytes and
+                # 'string' signifies the string you intend to send)
+                # fill in end
+                udt_send(sndpkt)
+            if rdt_rcv(rcvpkt) and notcorrupt(rcvpkt) and has_seq1(rcvpkt):
+                data = extract(rcvpkt)
+                deliver_data(data)
+                checksum = make_checksum(str(int(seqNum)).encode()+b'ACK')
+                # fill in start
+                sndpkt = make_pkt(seqNum, b'ACK', checksum)
+                # make a packet by calling make pkt with arguments seqNum, 'ACK', checksum.
+                # (Note that seqNum type is boolean and to send string in python 3 we send with following format:
+                # b'string', where b signifies bytes and 'string' signifies the string you intend to send)
+                # fill in end
+                udt_send(sndpkt)
+                seqNum = not seqNum
                 
         else:
             if rdt_rcv(rcvpkt) and (corrupt(rcvpkt) or has_seq1(rcvpkt)):
                 checksum = make_checksum(str(int(not seqNum)).encode()+b'ACK')
                 # fill in start
-                sndpkt = make_pkt(seqNum, b'ACK', checksum)
+                sndpkt = make_pkt(not seqNum, b'ACK', checksum)
                 # make a packet by calling make pkt with arguments seqNum, 'ACK', checksum.
                 # (Note that seqNum type is boolean and to send string in python 3 we send with following format:
                 # b'string', where b signifies bytes and 'string' signifies the string you intend to send)
@@ -189,9 +191,9 @@ while True:
                 udt_send(sndpkt)                    
                 seqNum = not seqNum
     print('Buffered: ', buffer)
-             
+rSocket.close()
 
 # fill in start
 # close receiver's packet
-rSocket.close()
+
 # fill in end

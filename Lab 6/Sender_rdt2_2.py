@@ -19,6 +19,7 @@ remotePort = 8002
 rSocket = socket(AF_INET, SOCK_DGRAM)
 # fill in start
 # Bind socket with localIP and localPort
+rSocket.bind((localIP, localPORT))
 # fill in end
 
 MSG = b'SIUC ECE422/553 Lab6-Sp15. We would like to use this message to implement a reliable transport protocol 2.2'
@@ -37,7 +38,7 @@ def extract(packet):
     # calculate length of packet
     packet_length = len(packet)
     # return the data from packet excluding check sum (last bit of packet content)
-    return packet[:packet_length-1]
+    return packet[0:(packet_length-1)]
 # fill in end
 
 
@@ -46,7 +47,7 @@ def extract(packet):
 def make_pkt(seqNum, data, checksum):
     # packet contains seqNum,data and checksum.
     # So assign required values to variable 'data' below. SeqNum is already assigned
-    packet = str(int(seqNum)).encode()+ data + checksum # fill in start #fill in end
+    packet = str(int(seqNum)).encode() + data + checksum  # fill in start #fill in end
     # return packet
     return packet
 # fill in end
@@ -69,7 +70,7 @@ def udt_send(packet):
 
 # Function to make checksum from the data it obtained
 def make_checksum(data):
-    return chr(crc32(data)%127).encode()
+    return chr(crc32(data) % 127).encode()
 
 
 # Function to check if packet received is corrupt
@@ -88,12 +89,10 @@ def notcorrupt(packet):
     # define function notcorrupt which takes parameter packet
     global seqNum
     # get length of packet
-    packet_length = len(packet)
+    pLen = len(packet)
     # check if obtained checksum matches with calculated checksum
     # (calcualte checksum by calling functions like extract and make_checksum)
-    packet = extract(packet)
-    make_checksum(packet)
-    if make_checksum(extract(packet) == packet[(packet_length-1):packet_length]):
+    if (make_checksum(extract(packet)) == packet[(pLen-1):pLen]):
         return True
         # if it matches return true
     else:
@@ -110,7 +109,7 @@ def rdt_send(data):
 
 def isACK(packet, seqNum):
     if packet[1:4] == b'ACK':
-        if packet[0:1]==str(int(seqNum)).encode():
+        if packet[0:1] == str(int(seqNum)).encode():
             return True
         else:
             return False
@@ -119,7 +118,7 @@ def isACK(packet, seqNum):
 
 
 def rdt_rcv(packet):
-    if len(packet)>0:
+    if len(packet) > 0:
         return True
     else:
         return False
@@ -130,8 +129,8 @@ fragNum = int(ceil(float(len(MSG))/float(MTU)))
 for i in range(fragNum):
     data = MSG[i*MTU:(i+1)*MTU]
     # FSM: Wait for the call from above
-    if rdt_send(data): # Check rdt_send() to decide next FSM state
-        checksum = make_checksum(str(int(seqNum)).encode()+data)
+    if rdt_send(data):  # Check rdt_send() to decide next FSM state
+        checksum = make_checksum(str(int(seqNum)).encode() + data)
         sndpkt = make_pkt(seqNum, data, checksum)
         udt_send(sndpkt)
         # FSM: Wait for ACK or NAK
@@ -139,7 +138,7 @@ for i in range(fragNum):
             rcvpkt = channel('s', rdtVersion, corruptEnabled, corruptRatio, dropEnabled, dropRatio, rSocket.recv(1024))
             if rcvpkt:
                 print('Received: ', rcvpkt)
-            if rdt_rcv(rcvpkt) and notcorrupt(rcvpkt) and isACK(rcvpkt, seqNum):
+            if (rdt_rcv(rcvpkt) and notcorrupt(rcvpkt) and isACK(rcvpkt, seqNum)):
                 seqNum = not seqNum
                 break
             else:
